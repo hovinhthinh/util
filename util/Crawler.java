@@ -7,11 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-
-/**
- * Created by thinhhv on 23/08/2014.
- */
-
 public class Crawler {
     public static final int CONNECT_TIME_OUT = 10 * 1000;
     public static final int READ_TIME_OUT = 10 * 1000;
@@ -19,8 +14,8 @@ public class Crawler {
     public static final int BUFFER_SIZE = 8 * 1024; // 8K
 
     //	If content length < MIN_CONTENT_LENGTH then page is redirected or error.
-//	public static final int MIN_CONTENT_LENGTH = 512; // 512B
-//	Allow redirecting
+    //	public static final int MIN_CONTENT_LENGTH = 512; // 512B
+    //	Allow redirecting.
     public static final boolean FOLLOW_REDIRECT = true;
 
     private static final String J_CONNECTION = "close";
