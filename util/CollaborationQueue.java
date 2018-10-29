@@ -1,17 +1,14 @@
 package util;
 
-import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.PriorityQueue;
 import java.util.Queue;
 
 // Blocking queue, returns null for pop operations only when all collaborators call "pop", otherwise they
 // will be blocked until there is some element pushed into the queue.
 class CollaborationQueue<T> {
+    private final Object lock = new Object();
     private Queue<T> queue;
     private int numberOfCollaborators;
-
-    private final Object lock = new Object();
     private int currentWaitCount = 0;
 
     private boolean isEnded = false;

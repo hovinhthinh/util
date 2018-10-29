@@ -26,6 +26,19 @@ public class FileUtils {
         return getLines(new File(file));
     }
 
+    public static LineStream getLineStream(File file) {
+        try {
+            return new LineStream(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static LineStream getLineStream(String file) {
+        return getLineStream(new File(file));
+    }
+
     public static class LineStream implements Iterable<String> {
 
         private BufferedReader in = null;
@@ -68,18 +81,5 @@ public class FileUtils {
             }
             super.finalize();
         }
-    }
-
-    public static LineStream getLineStream(File file) {
-        try {
-            return new LineStream(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static LineStream getLineStream(String file) {
-        return getLineStream(new File(file));
     }
 }

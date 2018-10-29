@@ -6,10 +6,9 @@ import java.util.PriorityQueue;
 // Blocking priority queue, returns null for pop operations only when all collaborators call "pop", otherwise they
 // will be blocked until there is some element pushed into the queue.
 class CollaborationPriorityQueue<T> {
+    private final Object lock = new Object();
     private PriorityQueue<T> queue;
     private int numberOfCollaborators;
-
-    private final Object lock = new Object();
     private int currentWaitCount = 0;
 
     private boolean isEnded = false;
