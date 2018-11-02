@@ -76,6 +76,15 @@ public class FileUtils {
             in = new BufferedReader(new InputStreamReader(getFileDecodedStream(file), charset));
         }
 
+        public String readLine() {
+            try {
+                return in == null ? null : in.readLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
         @Override
         public Iterator<String> iterator() {
             return new Iterator<String>() {
