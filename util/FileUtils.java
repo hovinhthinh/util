@@ -1,13 +1,35 @@
 package util;
 
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class FileUtils {
+    private static InputStream getFileDecodedStream(File file) throws IOException, CompressorException {
+        int dot = file.getName().lastIndexOf(".");
+        String extension = dot == -1 ? null : file.getName().substring(dot + 1).toLowerCase();
+        if (extension == null) {
+            return new FileInputStream(file);
+        }
+        String compressorName;
+        switch (extension) {
+            case "gz":
+                compressorName = CompressorStreamFactory.GZIP;
+                break;
+            // More extensions here.
+            default:
+                compressorName = null;
+        }
+        return compressorName == null ? new FileInputStream(file) :
+                new CompressorStreamFactory().createCompressorInputStream(compressorName, new FileInputStream(file));
+    }
+
     public static ArrayList<String> getLines(File file, Charset charset) {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(getFileDecodedStream(file), charset))) {
             ArrayList<String> list = new ArrayList<>();
             String line = null;
             while ((line = in.readLine()) != null) {
@@ -15,7 +37,7 @@ public class FileUtils {
             }
             list.trimToSize();
             return list;
-        } catch (IOException e) {
+        } catch (IOException | CompressorException e) {
             e.printStackTrace();
             return null;
         }
@@ -32,7 +54,7 @@ public class FileUtils {
     public static LineStream getLineStream(File file, Charset charset) {
         try {
             return new LineStream(file, charset);
-        } catch (IOException e) {
+        } catch (IOException | CompressorException e) {
             e.printStackTrace();
             return null;
         }
@@ -50,8 +72,8 @@ public class FileUtils {
 
         private BufferedReader in = null;
 
-        public LineStream(File file, Charset charset) throws IOException {
-            in = new BufferedReader(new InputStreamReader(new FileInputStream(file), charset));
+        public LineStream(File file, Charset charset) throws IOException, CompressorException {
+            in = new BufferedReader(new InputStreamReader(getFileDecodedStream(file), charset));
         }
 
         @Override
