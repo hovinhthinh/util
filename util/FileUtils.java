@@ -1,7 +1,10 @@
 package util;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -10,6 +13,16 @@ import java.util.Iterator;
 
 public class FileUtils {
     private static InputStream getFileDecodedStream(File file) throws IOException, CompressorException {
+        // Handle .tar.gz, read only the first entry of tar file.
+        if (file.getName().toLowerCase().endsWith(".tar.gz")) {
+            TarArchiveInputStream tarInput =
+                    new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
+            TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
+            return currentEntry == null ? null : tarInput;
+            // currentEntry = tarInput.getNextTarEntry();
+        }
+
+        // Everything else.
         int dot = file.getName().lastIndexOf(".");
         String extension = dot == -1 ? null : file.getName().substring(dot + 1).toLowerCase();
         if (extension == null) {
@@ -26,6 +39,25 @@ public class FileUtils {
         }
         return compressorName == null ? new FileInputStream(file) :
                 new CompressorStreamFactory().createCompressorInputStream(compressorName, new FileInputStream(file));
+    }
+
+    private static OutputStream getFileEncodedStream(File file) throws IOException, CompressorException {
+        int dot = file.getName().lastIndexOf(".");
+        String extension = dot == -1 ? null : file.getName().substring(dot + 1).toLowerCase();
+        if (extension == null) {
+            return new FileOutputStream(file);
+        }
+        String compressorName;
+        switch (extension) {
+            case "gz":
+                compressorName = CompressorStreamFactory.GZIP;
+                break;
+            // More extensions here.
+            default:
+                compressorName = null;
+        }
+        return compressorName == null ? new FileOutputStream(file) :
+                new CompressorStreamFactory().createCompressorOutputStream(compressorName, new FileOutputStream(file));
     }
 
     public static ArrayList<String> getLines(File file, Charset charset) {
@@ -66,6 +98,23 @@ public class FileUtils {
 
     public static LineStream getLineStream(String file, String charset) {
         return getLineStream(new File(file), Charset.forName(charset));
+    }
+
+    public static PrintWriter getPrintWriter(File file, Charset charset) {
+        try {
+            return new PrintWriter(new BufferedWriter(new OutputStreamWriter(getFileEncodedStream(file), charset)));
+        } catch (IOException | CompressorException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static PrintWriter getPrintWriter(String file) {
+        return getPrintWriter(new File(file), Charset.defaultCharset());
+    }
+
+    public static PrintWriter getPrintWriter(String file, String charset) {
+        return getPrintWriter(new File(file), Charset.forName(charset));
     }
 
     public static class LineStream implements Iterable<String> {
@@ -119,4 +168,5 @@ public class FileUtils {
             super.finalize();
         }
     }
+
 }
