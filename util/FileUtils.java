@@ -117,6 +117,30 @@ public class FileUtils {
         return getPrintWriter(new File(file), Charset.forName(charset));
     }
 
+    public static String getContent(File file, Charset charset) {
+        try {
+            InputStream inStream = getFileDecodedStream(file);
+            ByteArrayOutputStream contentBytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[16 * 1024];
+            int readByte = 0;
+            while ((readByte = inStream.read(buffer, 0, buffer.length)) != -1) {
+                contentBytes.write(buffer, 0, readByte);
+            }
+            return contentBytes.toString(charset.name());
+        } catch (IOException | CompressorException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String getContent(String file) {
+        return getContent(new File(file), Charset.defaultCharset());
+    }
+
+    public static String getContent(String file, String charset) {
+        return getContent(new File(file), Charset.forName(charset));
+    }
+
     public static class LineStream implements Iterable<String> {
 
         private BufferedReader in = null;
