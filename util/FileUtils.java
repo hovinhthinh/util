@@ -106,7 +106,7 @@ public class FileUtils {
 
     public static LineStream getLineStream(File file, Charset charset) {
         try {
-            return new LineStream(file, charset);
+            return new LineStream(getFileDecodedStream(file), charset);
         } catch (IOException | CompressorException e) {
             e.printStackTrace();
             return null;
@@ -181,8 +181,8 @@ public class FileUtils {
 
         private BufferedReader in = null;
 
-        public LineStream(File file, Charset charset) throws IOException, CompressorException {
-            in = new BufferedReader(new InputStreamReader(getFileDecodedStream(file), charset));
+        public LineStream(InputStream inputStream, Charset charset) {
+            in = new BufferedReader(new InputStreamReader(inputStream, charset));
         }
 
         public String readLine() {
