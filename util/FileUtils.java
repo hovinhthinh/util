@@ -2,6 +2,8 @@ package util;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -13,13 +15,32 @@ import java.util.Iterator;
 
 public class FileUtils {
     private static InputStream getFileDecodedStream(File file) throws IOException, CompressorException {
-        // Handle .tar.gz, read only the first entry of tar file.
+        // Handle .zip, read only the first file entry of zip file.
+        if (file.getName().toLowerCase().endsWith(".zip")) {
+            ZipArchiveInputStream zipInput =
+                    new ZipArchiveInputStream(new FileInputStream(file));
+            ZipArchiveEntry currentEntry;
+            while ((currentEntry = zipInput.getNextZipEntry()) != null) {
+                if (currentEntry.isDirectory()) {
+                    continue;
+                }
+                return zipInput;
+            }
+            return null;
+        }
+
+        // Handle .tar.gz, read only the first file entry of tar file.
         if (file.getName().toLowerCase().endsWith(".tar.gz")) {
             TarArchiveInputStream tarInput =
                     new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
-            TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
-            return currentEntry == null ? null : tarInput;
-            // currentEntry = tarInput.getNextTarEntry();
+            TarArchiveEntry currentEntry;
+            while ((currentEntry = tarInput.getNextTarEntry()) != null) {
+                if (currentEntry.isDirectory()) {
+                    continue;
+                }
+                return tarInput;
+            }
+            return null;
         }
 
         // Everything else.
@@ -115,6 +136,21 @@ public class FileUtils {
 
     public static PrintWriter getPrintWriter(String file, String charset) {
         return getPrintWriter(new File(file), Charset.forName(charset));
+    }
+
+    public static String getContent(InputStream inputStream, String charsetName) {
+        try {
+            ByteArrayOutputStream contentBytes = new ByteArrayOutputStream();
+            byte[] buffer = new byte[16 * 1024];
+            int readByte = 0;
+            while ((readByte = inputStream.read(buffer, 0, buffer.length)) != -1) {
+                contentBytes.write(buffer, 0, readByte);
+            }
+            return contentBytes.toString(charsetName);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static String getContent(File file, Charset charset) {
