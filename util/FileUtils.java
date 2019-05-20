@@ -180,9 +180,15 @@ public class FileUtils {
     public static class LineStream implements Iterable<String> {
 
         private BufferedReader in = null;
+        private boolean autoClose;
+
+        public LineStream(InputStream inputStream, Charset charset, boolean autoClose) {
+            in = new BufferedReader(new InputStreamReader(inputStream, charset));
+            this.autoClose = autoClose;
+        }
 
         public LineStream(InputStream inputStream, Charset charset) {
-            in = new BufferedReader(new InputStreamReader(inputStream, charset));
+            this(inputStream, charset, true);
         }
 
         public String readLine() {
@@ -219,7 +225,7 @@ public class FileUtils {
         @Override
         protected void finalize() throws Throwable {
             try {
-                if (in != null) {
+                if (autoClose && in != null) {
                     in.close();
                 }
             } catch (IOException e) {
@@ -228,5 +234,4 @@ public class FileUtils {
             super.finalize();
         }
     }
-
 }
